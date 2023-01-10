@@ -1,12 +1,14 @@
 /*
  * Double-precision log(1+x) function.
- * Copyright (c) 2022, Arm Limited.
+ *
+ * Copyright (c) 2022-2023, Arm Limited.
  * SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
  */
 
+#include "estrin.h"
 #include "math_config.h"
-
-#include "log1p_common.h"
+#include "pl_sig.h"
+#include "pl_test.h"
 
 #define Ln2Hi 0x1.62e42fefa3800p-1
 #define Ln2Lo 0x1.ef35793c76730p-45
@@ -19,6 +21,16 @@
 #define Rt2MOne 0x3fda827999fcef32
 #define AbsMask 0x7fffffffffffffff
 #define ExpM63 0x3c00
+#define C(i) __log1p_data.coeffs[i]
+
+static inline double
+eval_poly (double f)
+{
+  double f2 = f * f;
+  double f4 = f2 * f2;
+  double f8 = f4 * f4;
+  return ESTRIN_18 (f, f2, f4, f8, f8 * f8, C);
+}
 
 /* log1p approximation using polynomial on reduced interval. Largest
    observed errors are near the lower boundary of the region where k
@@ -111,3 +123,14 @@ log1p (double x)
   double y = fma (Ln2Lo, kd, cm);
   return y + fma (Ln2Hi, kd, p);
 }
+
+PL_SIG (S, D, 1, log1p, -0.9, 10.0)
+PL_TEST_ULP (log1p, 1.26)
+PL_TEST_INTERVAL (log1p, -10.0, 10.0, 10000)
+PL_TEST_INTERVAL (log1p, 0.0, 0x1p-23, 50000)
+PL_TEST_INTERVAL (log1p, 0x1p-23, 0.001, 50000)
+PL_TEST_INTERVAL (log1p, 0.001, 1.0, 50000)
+PL_TEST_INTERVAL (log1p, 0.0, -0x1p-23, 50000)
+PL_TEST_INTERVAL (log1p, -0x1p-23, -0.001, 50000)
+PL_TEST_INTERVAL (log1p, -0.001, -1.0, 50000)
+PL_TEST_INTERVAL (log1p, -1.0, inf, 5000)

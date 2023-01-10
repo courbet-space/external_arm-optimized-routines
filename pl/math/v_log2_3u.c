@@ -1,12 +1,15 @@
 /*
  * Double-precision vector log2 function.
  *
- * Copyright (c) 2022, Arm Limited.
+ * Copyright (c) 2022-2023, Arm Limited.
  * SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
  */
 
-#include "include/mathlib.h"
 #include "v_math.h"
+#include "include/mathlib.h"
+#include "pl_sig.h"
+#include "pl_test.h"
+
 #if V_SUPPORTED
 
 #define InvLn2 v_f64 (0x1.71547652b82fep0)
@@ -45,9 +48,9 @@ specialcase (v_f64_t x, v_f64_t y, v_u64_t cmp)
 
 /* Double-precision vector log2 routine. Implements the same algorithm as vector
    log10, with coefficients and table entries scaled in extended precision.
-   The maximum observed error is 2.59 ULP:
-   __v_log2(0x1.0b555054a9bd1p+0) got 0x1.fff6977bdced3p-5
-				 want 0x1.fff6977bdced6p-5.  */
+   The maximum observed error is 2.58 ULP:
+   __v_log2(0x1.0b556b093869bp+0) got 0x1.fffb34198d9dap-5
+				 want 0x1.fffb34198d9ddp-5.  */
 VPCS_ATTR
 v_f64_t V_NAME (log2) (v_f64_t x)
 {
@@ -85,4 +88,13 @@ v_f64_t V_NAME (log2) (v_f64_t x)
 }
 VPCS_ALIAS
 
+PL_SIG (V, D, 1, log2, 0.01, 11.1)
+PL_TEST_ULP (V_NAME (log2), 2.09)
+PL_TEST_EXPECT_FENV_ALWAYS (V_NAME (log2))
+PL_TEST_INTERVAL (V_NAME (log2), -0.0, -0x1p126, 100)
+PL_TEST_INTERVAL (V_NAME (log2), 0x1p-149, 0x1p-126, 4000)
+PL_TEST_INTERVAL (V_NAME (log2), 0x1p-126, 0x1p-23, 50000)
+PL_TEST_INTERVAL (V_NAME (log2), 0x1p-23, 1.0, 50000)
+PL_TEST_INTERVAL (V_NAME (log2), 1.0, 100, 50000)
+PL_TEST_INTERVAL (V_NAME (log2), 100, inf, 50000)
 #endif

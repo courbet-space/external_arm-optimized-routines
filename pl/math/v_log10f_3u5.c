@@ -1,12 +1,15 @@
 /*
  * Single-precision vector log10 function.
  *
- * Copyright (c) 2020-2022, Arm Limited.
+ * Copyright (c) 2020-2023, Arm Limited.
  * SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
  */
 
-#include "mathlib.h"
 #include "v_math.h"
+#include "mathlib.h"
+#include "pl_sig.h"
+#include "pl_test.h"
+
 #if V_SUPPORTED
 
 #define P(i) v_f32 (__v_log10f_poly[i])
@@ -70,4 +73,10 @@ v_f32_t V_NAME (log10f) (v_f32_t x)
   return y;
 }
 VPCS_ALIAS
+
+PL_SIG (V, F, 1, log10, 0.01, 11.1)
+PL_TEST_ULP (V_NAME (log10f), 2.81)
+PL_TEST_EXPECT_FENV_ALWAYS (V_NAME (log10f))
+PL_TEST_INTERVAL (V_NAME (log10f), 0, 0xffff0000, 10000)
+PL_TEST_INTERVAL (V_NAME (log10f), 0x1p-4, 0x1p4, 500000)
 #endif

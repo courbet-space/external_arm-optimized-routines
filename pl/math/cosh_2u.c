@@ -1,11 +1,13 @@
 /*
  * Double-precision cosh(x) function.
  *
- * Copyright (c) 2022, Arm Limited.
+ * Copyright (c) 2022-2023, Arm Limited.
  * SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
  */
 
 #include "math_config.h"
+#include "pl_sig.h"
+#include "pl_test.h"
 
 #define AbsMask 0x7fffffffffffffff
 #define SpecialBound                                                           \
@@ -53,3 +55,12 @@ cosh (double x)
   double t = __exp_dd (ax, 0);
   return 0.5 * t + 0.5 / t;
 }
+
+PL_SIG (S, D, 1, cosh, -10.0, 10.0)
+PL_TEST_ULP (cosh, 1.43)
+PL_TEST_INTERVAL (cosh, 0, 0x1.61da04cbafe44p+9, 100000)
+PL_TEST_INTERVAL (cosh, -0, -0x1.61da04cbafe44p+9, 100000)
+PL_TEST_INTERVAL (cosh, 0x1.61da04cbafe44p+9, 0x1p10, 1000)
+PL_TEST_INTERVAL (cosh, -0x1.61da04cbafe44p+9, -0x1p10, 1000)
+PL_TEST_INTERVAL (cosh, 0x1p10, inf, 100)
+PL_TEST_INTERVAL (cosh, -0x1p10, -inf, 100)

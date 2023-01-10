@@ -1,11 +1,14 @@
 /*
  * Single-precision vector erf(x) function.
  *
- * Copyright (c) 2020-2022, Arm Limited.
+ * Copyright (c) 2020-2023, Arm Limited.
  * SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
  */
 
 #include "sv_math.h"
+#include "pl_sig.h"
+#include "pl_test.h"
+
 #if SV_SUPPORTED
 
 #define AbsMask (0x7fffffff)
@@ -86,6 +89,16 @@ __sv_erff_x (sv_f32_t x, const svbool_t pg)
   return y;
 }
 
-strong_alias (__sv_erff_x, _ZGVsMxv_erff)
+PL_ALIAS (__sv_erff_x, _ZGVsMxv_erff)
 
+PL_SIG (SV, F, 1, erf, -4.0, 4.0)
+PL_TEST_ULP (__sv_erff, 0.76)
+PL_TEST_INTERVAL (__sv_erff, 0, 0x1p-28, 20000)
+PL_TEST_INTERVAL (__sv_erff, 0x1p-28, 1, 60000)
+PL_TEST_INTERVAL (__sv_erff, 1, 0x1p28, 60000)
+PL_TEST_INTERVAL (__sv_erff, 0x1p28, inf, 20000)
+PL_TEST_INTERVAL (__sv_erff, -0, -0x1p-28, 20000)
+PL_TEST_INTERVAL (__sv_erff, -0x1p-28, -1, 60000)
+PL_TEST_INTERVAL (__sv_erff, -1, -0x1p28, 60000)
+PL_TEST_INTERVAL (__sv_erff, -0x1p28, -inf, 20000)
 #endif

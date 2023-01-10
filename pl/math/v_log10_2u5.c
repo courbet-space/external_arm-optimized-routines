@@ -1,12 +1,15 @@
 /*
  * Double-precision vector log10(x) function.
  *
- * Copyright (c) 2022, Arm Limited.
+ * Copyright (c) 2022-2023, Arm Limited.
  * SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
  */
 
-#include "include/mathlib.h"
 #include "v_math.h"
+#include "include/mathlib.h"
+#include "pl_sig.h"
+#include "pl_test.h"
+
 #if V_SUPPORTED
 
 #define A(i) v_f64 (__v_log10_data.poly[i])
@@ -98,4 +101,10 @@ v_f64_t V_NAME (log10) (v_f64_t x)
 }
 VPCS_ALIAS
 
+PL_SIG (V, D, 1, log10, 0.01, 11.1)
+PL_TEST_ULP (V_NAME (log10), 1.97)
+PL_TEST_EXPECT_FENV_ALWAYS (V_NAME (log10))
+PL_TEST_INTERVAL (V_NAME (log10), 0, 0xffff000000000000, 10000)
+PL_TEST_INTERVAL (V_NAME (log10), 0x1p-4, 0x1p4, 400000)
+PL_TEST_INTERVAL (V_NAME (log10), 0, inf, 400000)
 #endif

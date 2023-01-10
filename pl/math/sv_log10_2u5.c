@@ -1,12 +1,14 @@
 /*
  * Double-precision SVE log10(x) function.
  *
- * Copyright (c) 2022, Arm Limited.
+ * Copyright (c) 2022-2023, Arm Limited.
  * SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
  */
 
-#include "math_config.h"
 #include "sv_math.h"
+#include "math_config.h"
+#include "pl_sig.h"
+#include "pl_test.h"
 
 #if SV_SUPPORTED
 
@@ -74,6 +76,14 @@ __sv_log10_x (sv_f64_t x, const svbool_t pg)
   return y;
 }
 
-strong_alias (__sv_log10_x, _ZGVsMxv_log10)
+PL_ALIAS (__sv_log10_x, _ZGVsMxv_log10)
 
+PL_SIG (SV, D, 1, log10, 0.01, 11.1)
+PL_TEST_ULP (__sv_log10, 1.97)
+PL_TEST_INTERVAL (__sv_log10, -0.0, -0x1p126, 100)
+PL_TEST_INTERVAL (__sv_log10, 0x1p-149, 0x1p-126, 4000)
+PL_TEST_INTERVAL (__sv_log10, 0x1p-126, 0x1p-23, 50000)
+PL_TEST_INTERVAL (__sv_log10, 0x1p-23, 1.0, 50000)
+PL_TEST_INTERVAL (__sv_log10, 1.0, 100, 50000)
+PL_TEST_INTERVAL (__sv_log10, 100, inf, 50000)
 #endif

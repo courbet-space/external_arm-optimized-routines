@@ -1,10 +1,12 @@
 /*
  * Single-precision scalar tan(x) function.
  *
- * Copyright (c) 2021-2022, Arm Limited.
+ * Copyright (c) 2021-2023, Arm Limited.
  * SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
  */
 #include "math_config.h"
+#include "pl_sig.h"
+#include "pl_test.h"
 
 /* Useful constants.  */
 #define NegPio2_1 (-0x1.921fb6p+0f)
@@ -190,3 +192,19 @@ tanf (float x)
   /* A unified way of assembling the result on both interval types.  */
   return fmaf (scale, p, offset);
 }
+
+PL_SIG (S, F, 1, tan, -3.1, 3.1)
+PL_TEST_ULP (tanf, 2.80)
+PL_TEST_INTERVAL (tanf, 0, 0xffff0000, 10000)
+PL_TEST_INTERVAL (tanf, 0x1p-127, 0x1p-14, 50000)
+PL_TEST_INTERVAL (tanf, -0x1p-127, -0x1p-14, 50000)
+PL_TEST_INTERVAL (tanf, 0x1p-14, 0.7, 50000)
+PL_TEST_INTERVAL (tanf, -0x1p-14, -0.7, 50000)
+PL_TEST_INTERVAL (tanf, 0.7, 1.5, 50000)
+PL_TEST_INTERVAL (tanf, -0.7, -1.5, 50000)
+PL_TEST_INTERVAL (tanf, 1.5, 0x1p17, 50000)
+PL_TEST_INTERVAL (tanf, -1.5, -0x1p17, 50000)
+PL_TEST_INTERVAL (tanf, 0x1p17, 0x1p54, 50000)
+PL_TEST_INTERVAL (tanf, -0x1p17, -0x1p54, 50000)
+PL_TEST_INTERVAL (tanf, 0x1p54, inf, 50000)
+PL_TEST_INTERVAL (tanf, -0x1p54, -inf, 50000)

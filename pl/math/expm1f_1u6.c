@@ -1,11 +1,14 @@
 /*
  * Single-precision e^x - 1 function.
  *
- * Copyright (c) 2022, Arm Limited.
+ * Copyright (c) 2022-2023, Arm Limited.
  * SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
  */
 
+#include "hornerf.h"
 #include "math_config.h"
+#include "pl_sig.h"
+#include "pl_test.h"
 
 #define Shift (0x1.8p23f)
 #define InvLn2 (0x1.715476p+0f)
@@ -59,12 +62,7 @@ expm1f (float x)
 	 x + ax^2 + bx^3 + cx^4 ....
      So we calculate the polynomial P(f) = a + bf + cf^2 + ...
      and assemble the approximation expm1(f) ~= f + f^2 * P(f).  */
-  float p = fmaf (C (4), f, C (3));
-  p = fmaf (p, f, C (2));
-  p = fmaf (p, f, C (1));
-  p = fmaf (p, f, C (0));
-  p = fmaf (f * f, p, f);
-
+  float p = fmaf (f * f, HORNER_4 (f, C), f);
   /* Assemble the result, using a slight rearrangement to achieve acceptable
      accuracy.
      expm1(x) ~= 2^i * (p + 1) - 1
@@ -73,3 +71,10 @@ expm1f (float x)
   /* expm1(x) ~= 2 * (p * t + (t - 1/2)).  */
   return 2 * fmaf (p, t, t - 0.5f);
 }
+
+PL_SIG (S, F, 1, expm1, -9.9, 9.9)
+PL_TEST_ULP (expm1f, 1.02)
+PL_TEST_INTERVAL (expm1f, 0, 0x1p-23, 1000)
+PL_TEST_INTERVAL (expm1f, -0, -0x1p-23, 1000)
+PL_TEST_INTERVAL (expm1f, 0x1p-23, 0x1.644716p6, 100000)
+PL_TEST_INTERVAL (expm1f, -0x1p-23, -0x1.9bbabcp+6, 100000)

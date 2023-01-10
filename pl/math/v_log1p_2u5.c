@@ -1,13 +1,16 @@
 /*
  * Double-precision vector log(1+x) function.
- * Copyright (c) 2022, Arm Limited.
+ *
+ * Copyright (c) 2022-2023, Arm Limited.
  * SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
  */
 
 #include "v_math.h"
-#if V_SUPPORTED
+#include "estrin.h"
+#include "pl_sig.h"
+#include "pl_test.h"
 
-#include "log1p_common.h"
+#if V_SUPPORTED
 
 #define Ln2Hi v_f64 (0x1.62e42fefa3800p-1)
 #define Ln2Lo v_f64 (0x1.ef35793c76730p-45)
@@ -18,6 +21,16 @@
 #define OneTop12 0x3ff
 #define BottomMask 0xffffffff
 #define AbsMask 0x7fffffffffffffff
+#define C(i) v_f64 (__log1p_data.coeffs[i])
+
+static inline v_f64_t
+eval_poly (v_f64_t f)
+{
+  v_f64_t f2 = f * f;
+  v_f64_t f4 = f2 * f2;
+  v_f64_t f8 = f4 * f4;
+  return ESTRIN_18 (f, f2, f4, f8, f8 * f8, C);
+}
 
 VPCS_ATTR
 NOINLINE static v_f64_t
@@ -38,6 +51,11 @@ VPCS_ATTR v_f64_t V_NAME (log1p) (v_f64_t x)
   v_u64_t special
     = v_cond_u64 ((ia >= v_u64 (0x7ff0000000000000))
 		  | (ix >= 0xbff0000000000000) | (ix == 0x8000000000000000));
+
+#if WANT_SIMD_EXCEPT
+  if (unlikely (v_any_u64 (special)))
+    x = v_sel_f64 (special, v_f64 (0), x);
+#endif
 
   /* With x + 1 = t * 2^k (where t = f + 1 and k is chosen such that f
 			   is in [sqrt(2)/2, sqrt(2)]):
@@ -82,11 +100,21 @@ VPCS_ATTR v_f64_t V_NAME (log1p) (v_f64_t x)
   v_f64_t y = v_fma_f64 (f * f, p, ylo + yhi);
 
   if (unlikely (v_any_u64 (special)))
-    return specialcase (x, y, special);
+    return specialcase (v_as_f64_u64 (ix), y, special);
 
   return y;
 }
-
 VPCS_ALIAS
 
+PL_SIG (V, D, 1, log1p, -0.9, 10.0)
+PL_TEST_ULP (V_NAME (log1p), 1.97)
+PL_TEST_EXPECT_FENV (V_NAME (log1p), WANT_SIMD_EXCEPT)
+PL_TEST_INTERVAL (V_NAME (log1p), -10.0, 10.0, 10000)
+PL_TEST_INTERVAL (V_NAME (log1p), 0.0, 0x1p-23, 50000)
+PL_TEST_INTERVAL (V_NAME (log1p), 0x1p-23, 0.001, 50000)
+PL_TEST_INTERVAL (V_NAME (log1p), 0.001, 1.0, 50000)
+PL_TEST_INTERVAL (V_NAME (log1p), 0.0, -0x1p-23, 50000)
+PL_TEST_INTERVAL (V_NAME (log1p), -0x1p-23, -0.001, 50000)
+PL_TEST_INTERVAL (V_NAME (log1p), -0.001, -1.0, 50000)
+PL_TEST_INTERVAL (V_NAME (log1p), -1.0, inf, 5000)
 #endif

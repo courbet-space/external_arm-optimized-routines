@@ -1,11 +1,13 @@
 /*
  * Double-precision SVE erfc(x) function.
  *
- * Copyright (c) 2021-2022, Arm Limited.
+ * Copyright (c) 2021-2023, Arm Limited.
  * SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
  */
 
 #include "sv_math.h"
+#include "pl_sig.h"
+#include "pl_test.h"
 
 #if SV_SUPPORTED
 #include "sv_exp_tail.h"
@@ -131,6 +133,14 @@ __sv_erfc_x (sv_f64_t x, const svbool_t pg)
   return y;
 }
 
-strong_alias (__sv_erfc_x, _ZGVsMxv_erfc)
+PL_ALIAS (__sv_erfc_x, _ZGVsMxv_erfc)
 
+PL_SIG (SV, D, 1, erfc, -4.0, 10.0)
+PL_TEST_ULP (__sv_erfc, 3.15)
+PL_TEST_INTERVAL (__sv_erfc, 0, 0xffff0000, 10000)
+PL_TEST_INTERVAL (__sv_erfc, 0x1p-127, 0x1p-26, 40000)
+PL_TEST_INTERVAL (__sv_erfc, -0x1p-127, -0x1p-26, 40000)
+PL_TEST_INTERVAL (__sv_erfc, 0x1p-26, 0x1p5, 40000)
+PL_TEST_INTERVAL (__sv_erfc, -0x1p-26, -0x1p3, 40000)
+PL_TEST_INTERVAL (__sv_erfc, 0, inf, 40000)
 #endif

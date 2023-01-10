@@ -1,10 +1,13 @@
 /*
  * Single-precision acosh(x) function.
- * Copyright (c) 2022, Arm Limited.
+ *
+ * Copyright (c) 2022-2023, Arm Limited.
  * SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
  */
 
 #include "math_config.h"
+#include "pl_sig.h"
+#include "pl_test.h"
 
 #define Ln2 (0x1.62e4p-1f)
 #define MinusZero 0x80000000
@@ -50,3 +53,11 @@ acoshf (float x)
   float xm1 = x - 1;
   return log1pf (xm1 + sqrtf (2 * xm1 + xm1 * xm1));
 }
+
+PL_SIG (S, F, 1, acosh, 1.0, 10.0)
+PL_TEST_ULP (acoshf, 2.30)
+PL_TEST_INTERVAL (acoshf, 0, 1, 100)
+PL_TEST_INTERVAL (acoshf, 1, 2, 10000)
+PL_TEST_INTERVAL (acoshf, 2, 0x1p64, 100000)
+PL_TEST_INTERVAL (acoshf, 0x1p64, inf, 100000)
+PL_TEST_INTERVAL (acoshf, -0, -inf, 10000)

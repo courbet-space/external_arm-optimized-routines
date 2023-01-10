@@ -1,7 +1,7 @@
 /*
  * Configuration for math routines.
  *
- * Copyright (c) 2017-2022, Arm Limited.
+ * Copyright (c) 2017-2023, Arm Limited.
  * SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
  */
 
@@ -23,6 +23,11 @@
    libraries do not set errno, so this is 0 by default.  It may need to be
    set to 1 if math.h has (math_errhandling & MATH_ERRNO) != 0.  */
 # define WANT_ERRNO 0
+#endif
+#ifndef WANT_SIMD_EXCEPT
+/* If defined to 1, trigger fp exceptions in vector routines, consistently with
+   behaviour expected from the corresponding scalar routine.  */
+#define WANT_SIMD_EXCEPT 0
 #endif
 
 /* Compiler can inline round as a single instruction.  */
@@ -476,16 +481,10 @@ extern const struct tanf_poly_data
   float poly_cotan[TANF_Q_POLY_NCOEFFS];
 } __tanf_poly_data HIDDEN;
 
-#define V_LOG2F_TABLE_BITS 4
-#define V_LOG2F_POLY_ORDER 4
+#define V_LOG2F_POLY_NCOEFFS 9
 extern const struct v_log2f_data
 {
-  struct
-  {
-    /* Pad with dummy for quad-aligned memory access.  */
-    float invc_hi, invc_lo, logc, dummy;
-  } tab[1 << V_LOG2F_TABLE_BITS];
-  float poly[V_LOG2F_POLY_ORDER];
+  float poly[V_LOG2F_POLY_NCOEFFS];
 } __v_log2f_data HIDDEN;
 
 #define V_LOG2_TABLE_BITS 7
@@ -552,5 +551,17 @@ extern const struct expf_data
 
 #define EXPM1_POLY_ORDER 11
 extern const double __expm1_poly[EXPM1_POLY_ORDER] HIDDEN;
+
+extern const struct cbrtf_data
+{
+  float poly[4];
+  float table[5];
+} __cbrtf_data HIDDEN;
+
+extern const struct cbrt_data
+{
+  double poly[4];
+  double table[5];
+} __cbrt_data HIDDEN;
 
 #endif

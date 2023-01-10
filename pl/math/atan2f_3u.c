@@ -1,14 +1,16 @@
 /*
  * Single-precision scalar atan2(x) function.
  *
- * Copyright (c) 2021-2022, Arm Limited.
+ * Copyright (c) 2021-2023, Arm Limited.
  * SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
  */
 
 #include <stdbool.h>
 
-#include "math_config.h"
 #include "atanf_common.h"
+#include "math_config.h"
+#include "pl_sig.h"
+#include "pl_test.h"
 
 #define Pi (0x1.921fb6p+1f)
 #define PiOver2 (0x1.921fb6p+0f)
@@ -154,3 +156,12 @@ atan2f (float y, float x)
   /* Account for the sign of x and y.  */
   return asfloat (asuint (ret) ^ sign_xy);
 }
+
+/* Arity of 2 means no mathbench entry emitted. See test/mathbench_funcs.h.  */
+PL_SIG (S, F, 2, atan2)
+PL_TEST_ULP (atan2f, 2.4)
+PL_TEST_INTERVAL (atan2f, -10.0, 10.0, 50000)
+PL_TEST_INTERVAL (atan2f, -1.0, 1.0, 40000)
+PL_TEST_INTERVAL (atan2f, 0.0, 1.0, 40000)
+PL_TEST_INTERVAL (atan2f, 1.0, 100.0, 40000)
+PL_TEST_INTERVAL (atan2f, 1e6, 1e32, 40000)

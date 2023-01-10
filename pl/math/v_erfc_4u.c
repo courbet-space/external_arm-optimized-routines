@@ -1,12 +1,16 @@
 /*
  * Double-precision vector erfc(x) function.
  *
- * Copyright (c) 2019-2022, Arm Limited.
+ * Copyright (c) 2019-2023, Arm Limited.
  * SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
  */
 
-#include "math_config.h"
 #include "v_math.h"
+#include "horner.h"
+#include "math_config.h"
+#include "pl_sig.h"
+#include "pl_test.h"
+
 #if V_SUPPORTED
 
 /* Accurate exponential (vector variant of exp_dd).  */
@@ -54,28 +58,6 @@ lookup (v_u64_t i)
   e.xi[1] = xint[i[1]];
 #endif
   return e;
-}
-
-/* Evaluate order-12 polynomials using pairwise summation and Horner
-   scheme.  */
-static inline v_f64_t
-v_eval_poly (v_f64_t z, struct entry e)
-{
-  v_f64_t r = e.P[12];
-  r = v_fma_f64 (z, r, e.P[11]);
-  r = v_fma_f64 (z, r, e.P[10]);
-  r = v_fma_f64 (z, r, e.P[9]);
-  r = v_fma_f64 (z, r, e.P[8]);
-  r = v_fma_f64 (z, r, e.P[7]);
-  r = v_fma_f64 (z, r, e.P[6]);
-  r = v_fma_f64 (z, r, e.P[5]);
-  r = v_fma_f64 (z, r, e.P[4]);
-  r = v_fma_f64 (z, r, e.P[3]);
-  r = v_fma_f64 (z, r, e.P[2]);
-  r = v_fma_f64 (z, r, e.P[1]);
-  r = v_fma_f64 (z, r, e.P[0]);
-
-  return r;
 }
 
 /* Accurate evaluation of exp(x^2) using compensated product
@@ -154,7 +136,8 @@ v_f64_t V_NAME (erfc) (v_f64_t x)
 
   /* Evaluate Polynomial: P(|x|-x_i).  */
   z = a - dat.xi;
-  p = v_eval_poly (z, dat);
+#define C(i) dat.P[i]
+  p = HORNER_12 (z, C);
 
   /* Evaluate Gaussian: exp(-x^2).  */
   v_f64_t e = v_eval_gauss (a);
@@ -173,4 +156,13 @@ v_f64_t V_NAME (erfc) (v_f64_t x)
   return y;
 }
 VPCS_ALIAS
+
+PL_SIG (V, D, 1, erfc, -6.0, 28.0)
+PL_TEST_ULP (V_NAME (erfc), 3.15)
+PL_TEST_INTERVAL (V_NAME (erfc), 0, 0xffff0000, 10000)
+PL_TEST_INTERVAL (V_NAME (erfc), 0x1p-1022, 0x1p-26, 40000)
+PL_TEST_INTERVAL (V_NAME (erfc), -0x1p-1022, -0x1p-26, 40000)
+PL_TEST_INTERVAL (V_NAME (erfc), 0x1p-26, 0x1p5, 40000)
+PL_TEST_INTERVAL (V_NAME (erfc), -0x1p-26, -0x1p3, 40000)
+PL_TEST_INTERVAL (V_NAME (erfc), 0, inf, 40000)
 #endif
