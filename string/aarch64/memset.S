@@ -1,7 +1,7 @@
 /*
  * memset - fill memory with a constant byte
  *
- * Copyright (c) 2012-2021, Arm Limited.
+ * Copyright (c) 2012-2022, Arm Limited.
  * SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
  */
 
@@ -11,7 +11,7 @@
  *
  */
 
-#include "../asmdefs.h"
+#include "asmdefs.h"
 
 #define dstin	x0
 #define val	x1

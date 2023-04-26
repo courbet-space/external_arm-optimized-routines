@@ -1,7 +1,7 @@
 /*
  * __mtag_tag_region - tag memory
  *
- * Copyright (c) 2021, Arm Limited.
+ * Copyright (c) 2021-2022, Arm Limited.
  * SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
  */
 
@@ -15,7 +15,7 @@
  * The memory region may remain untagged if tagging is not enabled.
  */
 
-#include "../asmdefs.h"
+#include "asmdefs.h"
 
 #if __ARM_FEATURE_MEMORY_TAGGING
 

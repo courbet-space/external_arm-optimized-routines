@@ -1,7 +1,7 @@
 /*
  * strrchr - find last position of a character in a string.
  *
- * Copyright (c) 2014-2020, Arm Limited.
+ * Copyright (c) 2014-2022, Arm Limited.
  * SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
  */
 
@@ -11,7 +11,7 @@
  * Neon Available.
  */
 
-#include "../asmdefs.h"
+#include "asmdefs.h"
 
 /* Arguments and results.  */
 #define srcin		x0
